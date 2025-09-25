@@ -3,16 +3,29 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import pandas as pd
 import os
+import logging
+
+log = logging.getLogger(__name__)
 
 def transform_to_bronze(**context):
-    # Read raw CSV
+
     file_path = os.getenv('FILE_PATH')
     df = pd.read_csv(file_path)
     
-    # Add date column
+    log.info(f"FILE_PATH_BRONZE: {file_path}")
+ 
     df['dt'] = datetime.now().strftime('%Y-%m-%d')
-    
-    # Save as parquet
+    df['job_satisfaction'] = df['JobSatisfaction'] 
+    df['monthly_income'] = df['MonthlyIncome']
+
+    satisfaction_feels = {
+        1: 'Muito baixa',
+        2: 'Baixa',
+        3: 'Alta',
+        4: 'Muito alta'
+        }
+    df['job_satisfaction_ptbr'] = df['job_satisfaction'].map(satisfaction_feels)
+ 
     output_path = '/opt/airflow/data/bronze/'
     os.makedirs(output_path, exist_ok=True)
     df.to_parquet(f"{output_path}/hr_data.parquet", index=False)
