@@ -7,32 +7,31 @@ import oci
 
 log = LoggingMixin().log
 
-FILE_PATH   = os.getenv("FILE_PATH", "/opt/airflow/data/raw/WA_Fn-UseC_-HR-Employee-Attrition.csv")
+FILE_PATH_RAW   = os.getenv("FILE_PATH_RAW")
 OBJECT_PREF = os.getenv("OBJECT_PREFIX", "hr")  # prefixo na chave do objeto no bucket
 
 def upload_to_bucket(**_):
     log.info("Starting upload task via SDK OCI...")
 
-    # 1) valida arquivo local
-    if not os.path.exists(FILE_PATH):
-        raise FileNotFoundError(f"Input file not found: {FILE_PATH}")
 
-    # 2) credenciais/params via env
-    bucket  = os.environ["OCI_BUCKET_NAME"]          # defina no .env
-    profile = os.getenv("OCI_PROFILE", "DEFAULT")    # defina no .env (opcional)
+    if not os.path.exists(FILE_PATH_RAW):
+        raise FileNotFoundError(f"Input file not found: {FILE_PATH_RAW}")
 
-    # 3) autenticação via ~/.oci/config (dentro do container)
+
+    bucket  = os.environ["OCI_BUCKET_NAME"]         
+    profile = os.getenv("OCI_PROFILE", "DEFAULT")    
+
     cfg_path = os.path.expanduser("~/.oci/config")
     config   = oci.config.from_file(cfg_path, profile_name=profile)
     client   = oci.object_storage.ObjectStorageClient(config)
     namespace = client.get_namespace().data
 
-    # 4) nome do objeto com timestamp
+
     ts = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     object_name = f"{OBJECT_PREF}/WA_Attrition_{ts}.csv"
 
-    # 5) upload
-    with open(FILE_PATH, "rb") as f:
+
+    with open(FILE_PATH_RAW, "rb") as f:
         resp = client.put_object(namespace, bucket, object_name, f, content_type="text/csv")
 
     log.info(
