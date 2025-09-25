@@ -13,30 +13,51 @@ x-airflow-common:
     OCI_BUCKET_NAME: ${OCI_BUCKET_NAME}
     OCI_PROFILE: ${OCI_PROFILE}
     FILE_PATH: ${FILE_PATH}
+    compartment_id: ${compartment_id}
+    db_display_name: ${db_display_name}
+    db_name: ${db_name}
+    cpu_core_count: ${cpu_core_count}
+    data_storage_size_in_tbs: ${data_storage_size_in_tbs}
+    adb_admin_password: ${adb_admin_password}
+    adb_wallet_password: ${adb_wallet_password}
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
     AIRFLOW__WEBSERVER__RBAC: 'true'
+    BASE_DIR: ${BASE_DIR}
+    FILE_PATH_RAW: ${FILE_PATH_RAW}
+    FILE_PATH_GOLD: ${FILE_PATH_GOLD}
+    FILE_PATH_BRONZE: ${FILE_PATH_BRONZE}
     ORACLE_HOME: /opt/airflow/wallet
     TNS_ADMIN: /opt/airflow/wallet
     ORACLE_USER: admin
-    ORACLE_PASSWORD: ${ORACLE_WALLET_PASSWORD}
+    ORACLE_PASSWORD: ${ORACLE_PASSWORD}
+    ORACLE_WALLET_PASSWORD: ${ORACLE_WALLET_PASSWOR}
+    ADB_HOST: ${ADB_HOST}
+    ADB_USER: ${ADB_USER}
+    ADB_PASSWORD: ${ADB_PASSWORD}
+    WALLET_PATH: ${WALLET_PATH}
     LD_LIBRARY_PATH: /usr/lib/oracle/21/client64/lib
     _PIP_ADDITIONAL_REQUIREMENTS: >-
       kagglehub>=0.1.0
       oci>=2.0.0
       oci-cli>=3.0.0
       cx_Oracle>=8.3.0
+      oracledb>=1.0.0
       pandas>=2.0.0
       pyarrow>=14.0.1
+      apache-airflow-providers-oracle>=3.0.0
+    ORACLE_TNS: ${ORACLE_TNS}
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
     - ./infra/wallet:/opt/airflow/wallet:ro
+    - ./infra/instantclient/instantclient_23_9:/opt/oracle/instantclient:ro
     - ./outputs.json:/opt/airflow/outputs.json
     - ./data:/opt/airflow/data 
     - ${USERPROFILE}/.oci:/home/airflow/.oci:ro
+    - ./scripts:/opt/airflow/scripts
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     - postgres
