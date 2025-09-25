@@ -1,41 +1,8 @@
 from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.providers.oracle.operators.oracle import OracleOperator
 from datetime import datetime, timedelta
 import pandas as pd
 import os
-
-def transform_to_gold(**context):
-    try:
-        # Read from bronze
-        df = pd.read_parquet('/opt/airflow/data/bronze/hr_data.parquet')
-        
-        # Convert Attrition to numeric (Yes=1, No=0)
-        df['Attrition'] = (df['Attrition'] == 'Yes').astype(int)
-        
-        # Calculate metrics
-        attrition_by_dept = df.groupby('Department').agg({
-            'Attrition': ['count', 'mean'],
-            'MonthlyIncome': 'mean'
-        }).round(2)
-        
-        # Rename columns for clarity
-        attrition_by_dept.columns = [
-            'TotalEmployees',
-            'AttritionRate',
-            'AvgMonthlyIncome'
-        ]
-        attrition_by_dept = attrition_by_dept.reset_index()
-        
-        # Save as CSV for Power BI
-        output_path = '/opt/airflow/data/gold/'
-        os.makedirs(output_path, exist_ok=True)
-        csv_path = f"{output_path}/attrition_metrics.csv"
-        attrition_by_dept.to_csv(csv_path, index=False)
-        print(f"Saved metrics to CSV: {csv_path}")
-        
-    except Exception as e:
-        print(f"Error in gold transformation: {str(e)}")
-        raise e
 
 default_args = {
     'owner': 'airflow',
@@ -53,7 +20,37 @@ with DAG(
     tags=['etl', 'gold']
 ) as dag:
     
-    gold_task = PythonOperator(
-        task_id='transform_gold',
-        python_callable=transform_to_gold
+    gold_by_department = OracleOperator(
+        task_id='gold_by_department',
+        oracle_conn_id='oracle_autonomous_conn',
+        sql="""
+        CREATE TABLE IF NOT EXISTS gold_department_metrics AS
+        SELECT 
+            Department,
+            COUNT(*) AS total_employees,
+            ROUND(AVG(CASE WHEN Attrition='Yes' THEN 1 ELSE 0 END), 2) AS attrition_rate,
+            ROUND(AVG(MonthlyIncome), 2) AS avg_monthly_income,
+            TO_DATE(SYSDATE, 'YYYY-MM-DD') AS dt
+        FROM bronze_hr_data
+        GROUP BY Department
+        """
     )
+
+    gold_by_satisfaction = OracleOperator(
+        task_id='gold_by_satisfaction',
+        oracle_conn_id='oracle_autonomous_conn',
+        sql="""
+        CREATE OR REPLACE VIEW gold_satisfaction_metrics AS
+        SELECT 
+            job_satisfaction_ptbr,
+            ROUND(AVG(MonthlyIncome), 2) AS avg_monthly_income,
+            ROUND(MEDIAN(MonthlyIncome), 2) AS median_monthly_income,
+            ROUND(AVG(CASE WHEN Attrition='Yes' THEN 1 ELSE 0 END), 2) AS avg_attrition,
+            TO_DATE(SYSDATE, 'YYYY-MM-DD') AS dt
+        FROM bronze_hr_data
+        GROUP BY job_satisfaction_ptbr
+        """
+    )
+
+    gold_by_department >> gold_by_satisfaction
+
