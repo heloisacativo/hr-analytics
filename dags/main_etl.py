@@ -25,7 +25,7 @@ with DAG(
         trigger_dag_id='extract_dataset',
         wait_for_completion=True,
         poke_interval=30,
-        failed_states=['failed']  # Removed 'skipped' as it's not a valid state
+        failed_states=['failed'] 
     )
 
     trigger_upload = TriggerDagRunOperator(
@@ -37,12 +37,30 @@ with DAG(
         },
         wait_for_completion=True,
         poke_interval=30,
-        failed_states=['failed']  # Removed 'skipped' as it's not a valid state
+        failed_states=['failed']  
+    )
+
+    trigger_download = TriggerDagRunOperator(
+        task_id='trigger_download',
+        trigger_dag_id='download_from_bucket',
+        conf={
+            'source': 'etl_master'
+        },
+        wait_for_completion=True,
+        poke_interval=30,
+        failed_states=['failed']  
     )
 
     trigger_bronze = TriggerDagRunOperator(
         task_id='trigger_bronze',
         trigger_dag_id='transform_bronze',
+        wait_for_completion=True,
+        poke_interval=30
+    )
+
+    trigger_upload_to_autonomous_database = TriggerDagRunOperator(
+        task_id='trigger_upload_to_autonomous_database',
+        trigger_dag_id='upload_to_autonomous_database',
         wait_for_completion=True,
         poke_interval=30
     )
@@ -54,5 +72,6 @@ with DAG(
         poke_interval=30
     )
 
-    # Set task dependencies
-    trigger_extract >> trigger_upload >> trigger_bronze >> trigger_gold
+    
+
+    trigger_extract >> trigger_upload >> trigger_download >> trigger_bronze >> trigger_upload_to_autonomous_database >> trigger_gold 
