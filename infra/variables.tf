@@ -49,7 +49,7 @@ variable "adb_wallet_password" {
 
 variable "whitelisted_ips" {
   type        = list(string)
-  default     = []        # ex: ["200.200.200.10/32"]
+  default     = []     
 }
 
 
