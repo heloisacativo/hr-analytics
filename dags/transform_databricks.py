@@ -4,10 +4,9 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
 
-# Carrega variáveis do .env
 load_dotenv()
 
-DATABRICKS_JOB_ID = "834692105477972"  # Substitua pelo job_id do Databricks
+DATABRICKS_JOB_ID = "834692105477972"  
 OCI_BUCKET_NAME = os.getenv("OCI_BUCKET_NAME")
 OBJECT_PREFIX = os.getenv("OBJECT_PREFIX", "hr")
 OCI_TENANCY = os.getenv("OCI_TENANCY")
