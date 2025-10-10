@@ -12,6 +12,12 @@ x-airflow-common:
     OBJECT_PREFIX: ${OBJECT_PREFIX}
     OCI_BUCKET_NAME: ${OCI_BUCKET_NAME}
     OCI_PROFILE: ${OCI_PROFILE}
+    OCI_TENANCY: ${OCI_TENANCY}
+    OCI_USER: ${OCI_USER}
+    OCI_FINGERPRINT: ${OCI_FINGERPRINT}
+    OCI_PRIVATE_KEY_PATH: ${OCI_PRIVATE_KEY_PATH}
+    OCI_PASSPHRASE: ${OCI_PASSPHRASE}
+    OCI_NAMESPACE: ${OCI_NAMESPACE}
     FILE_PATH: ${FILE_PATH}
     compartment_id: ${compartment_id}
     db_display_name: ${db_display_name}
@@ -33,6 +39,9 @@ x-airflow-common:
     ORACLE_USER: admin
     ORACLE_PASSWORD: ${ORACLE_PASSWORD}
     ORACLE_WALLET_PASSWORD: ${ORACLE_WALLET_PASSWORD}
+    DATABRICKS_HOST: ${DATABRICKS_HOST}
+    DATABRICKS_TOKEN: ${DATABRICKS_TOKEN}
+    DATABRICKS_NOTEBOOK_PATH: ${DATABRICKS_NOTEBOOK_PATH}
     ADB_HOST: ${ADB_HOST}
     ADB_USER: ${ADB_USER}
     ADB_PASSWORD: ${ADB_PASSWORD}
@@ -47,6 +56,7 @@ x-airflow-common:
       pandas>=2.0.0
       pyarrow>=14.0.1
       apache-airflow-providers-oracle>=3.0.0
+      apache-airflow-providers-databricks>=6.10.0
     ORACLE_TNS: ${ORACLE_TNS}
   volumes:
     - ./dags:/opt/airflow/dags
@@ -78,6 +88,8 @@ services:
     command: webserver
     ports:
       - "8080:8080"
+    volumes:
+      - ./airflow_cache:/home/airflow/.cache
 
   scheduler:
     <<: *airflow-common
@@ -85,13 +97,14 @@ services:
 
   init:
     <<: *airflow-common
-    command: bash -c "airflow db init && airflow users create \
+    command: >-
+      bash -c "airflow db init && airflow users create \
       --username ${AIRFLOW_USER} \
       --password ${AIRFLOW_PASS} \
       --firstname Admin \
       --lastname User \
       --role Admin \
-      --email admin@example.com"
+      --email admin@example.com && python /opt/airflow/scripts/create_or_update_connection.py"
 
 volumes:
   postgres-db-volume:
