@@ -1,6 +1,6 @@
 # IBM HR Analytics
 
-This project implements an ETL pipeline orchestrated by **Apache Airflow**, using **Python** for data processing, with intermediate storage in **Oracle Cloud Object Storage** and final output as **CSV** for analysis in **Power BI**.
+This project implements an ETL pipeline orchestrated by **Apache Airflow**, using **Python** for data processing, with intermediate storage in **Oracle Cloud Object Storage** and final output as **CSV** for downstream analysis and reporting.
 
 ---
 
@@ -21,7 +21,7 @@ Processing of the **Bronze → Silver → Gold** layers is performed using **Dat
 The final result is saved in the `attrition_metrics.csv` file.
 
 ### 4. Analysis
-The CSV file can be imported directly into **Power BI** for visualization and analysis.
+The CSV file can be imported into visualization and analysis tools.
 
 ---
 
@@ -38,7 +38,7 @@ The CSV file can be imported directly into **Power BI** for visualization and an
 3. **Access Airflow UI:**
    - Available at [http://localhost:8080](http://localhost:8080)
    
-   
+    
 
 ## Infrastructure Provisioning with Terraform (OCI)
 
@@ -92,6 +92,3 @@ The CSV file can be imported directly into **Power BI** for visualization and an
    ```bash
    terraform apply
    ```
-
-
-

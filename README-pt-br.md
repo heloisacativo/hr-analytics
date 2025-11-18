@@ -1,6 +1,6 @@
 # IBM HR Analytics
 
-Este projeto implementa um pipeline ETL orquestrado pelo Apache Airflow, utilizando Data Bricks para o processamento de dados, com armazenamento intermediário no Oracle Cloud Object Storage e saída final como CSV para análise no Power BI.
+Este projeto implementa um pipeline ETL orquestrado pelo **Apache Airflow**, utilizando **Python** para o processamento de dados, com armazenamento intermediário no **Oracle Cloud Object Storage** e saída final em **CSV** para análise e geração de relatórios.
 
 ---
 
@@ -21,7 +21,7 @@ Processamentos das camadas **Bronze → Silver → Gold** é realizado utilizand
 O resultado final é salvo no arquivo attrition_metrics.csv em um Bucket da Oracle.
 
 ### 4. Análise
-O arquivo CSV pode ser importado diretamente no Power BI para visualização e análise.
+O arquivo CSV pode ser importado em ferramentas de visualização e análise.
 
 ---
 
